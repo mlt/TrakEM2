@@ -75,6 +75,7 @@ import ini.trakem2.vector.VectorString3D;
 /** One Display3D instance for each LayerSet (maximum). */
 public final class Display3D {
 
+	private static final int updateInterval = 4000;
 	/** Table of LayerSet and Display3D - since there is a one to one relationship.  */
 	static private Hashtable<LayerSet,Display3D> ht_layer_sets = new Hashtable<LayerSet,Display3D>();
 	/**Control calls to new Display3D. */
@@ -471,7 +472,7 @@ public final class Display3D {
 				}
 				Utils.showStatus(new StringBuilder("Rendered ").append(counter.get()).append('/').append(hs.size()).toString());
 			}
-		}, 100, 4000, TimeUnit.MILLISECONDS);
+		}, 100, updateInterval, TimeUnit.MILLISECONDS);
 
 		// A list of all generated Content objects
 		final Vector<Future<Content>> list = new Vector<Future<Content>>();
@@ -556,7 +557,10 @@ public final class Display3D {
 								IJError.print(t);
 							}
 						}
+						// Reset cursor
+						doneWaiting();
 						try {
+							Thread.sleep(updateInterval);
 							// Shutdown scheduler and execute remaining tasks
 							for (final Runnable r : updater.shutdownNow()) {
 								r.run();
@@ -564,8 +568,6 @@ public final class Display3D {
 						} catch (final Throwable e) {
 							IJError.print(e);
 						}
-						// Reset cursor
-						doneWaiting();
 						Utils.showStatus(new StringBuilder("Done rendering ").append(counter.get()).append('/').append(hs.size()).toString());
 					}
 				});
